@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameController : MonoBehaviour
 {
@@ -10,7 +11,11 @@ public class GameController : MonoBehaviour
     private Bird _shotBird;
     public BoxCollider2D TapCollider;
 
-    private bool _isGameEnded = false;
+    [Header("GameOver")]
+    public GameObject gameOverPanel;
+
+
+    public bool _isGameEnded = false;
 
     void Start()
     {
@@ -46,6 +51,13 @@ public class GameController : MonoBehaviour
             SlingShooter.InitiateBird(Birds[0]);
             _shotBird = Birds[0];
         }
+
+        if (Birds.Count == 0)
+        {
+            _isGameEnded = true;
+            GameEnded();
+            Debug.Log("You Lost");
+        }
     }
 
     public void CheckGameEnd(GameObject destroyedEnemy)
@@ -62,6 +74,8 @@ public class GameController : MonoBehaviour
         if (Enemies.Count == 0)
         {
             _isGameEnded = true;
+            GameEnded();
+            Debug.Log("You Win");
         }
     }
 
@@ -78,5 +92,15 @@ public class GameController : MonoBehaviour
         {
             _shotBird.OnTap();
         }
+    }
+
+    public void GameEnded()
+    {
+        gameOverPanel.SetActive(true);
+    }
+
+    public void GameOverButton()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }
