@@ -1,13 +1,20 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.Events;
 
 public class Enemy : MonoBehaviour
 {
     public float Health = 50f;
+    private float _currentHealth;
 
     public UnityAction<GameObject> OnEnemyDestroyed = delegate { };
 
     private bool _isHit = false;
+
+    private void Start()
+    {
+        _currentHealth = Health;
+    }
 
     void OnDestroy()
     {

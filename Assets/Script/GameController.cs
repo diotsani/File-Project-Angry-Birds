@@ -4,21 +4,28 @@ using UnityEngine.SceneManagement;
 
 public class GameController : MonoBehaviour
 {
+    [Header("Level Data")]
+    [SerializeField] private int _levelNumber;
+    [SerializeField] private GameObject _levelPrefab;
+    
+    [Header("Birds")]
+    public List<Bird> Birds;
+    private Bird _shotBird;
+    [Header("Enemy")]
+    public List<Enemy> Enemies;
+    
+    [Header("Tools")]
     public SlingShooter SlingShooter;
     public TrailController TrailController;
-    public List<Bird> Birds;
-    public List<Enemy> Enemies;
-    private Bird _shotBird;
     public BoxCollider2D TapCollider;
 
     [Header("GameOver")]
     public GameObject gameOverPanel;
-
-
     public bool _isGameEnded = false;
 
     void Start()
     {
+        InitLevel();
         for (int i = 0; i < Birds.Count; i++)
         {
             Birds[i].OnBirdDestroyed += ChangeBird;
@@ -33,6 +40,12 @@ public class GameController : MonoBehaviour
         TapCollider.enabled = false;
         SlingShooter.InitiateBird(Birds[0]);
         _shotBird = Birds[0];
+    }
+    void InitLevel()
+    {
+        _levelPrefab = Resources.Load("LevelData/Level-" + _levelNumber) as GameObject;
+        GameObject enemy = Instantiate(_levelPrefab);
+        Enemies = new List<Enemy>(enemy.GetComponentsInChildren<Enemy>());
     }
 
     public void ChangeBird()
