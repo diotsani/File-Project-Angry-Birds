@@ -1,14 +1,24 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class GameController : MonoBehaviour
 {
     [Header("Level Data")]
     [SerializeField] private int _levelNumber;
     [SerializeField] private GameObject _levelPrefab;
-    
+    [Header("View")]
+    [SerializeField] private TMP_Text _countText;
+    [SerializeField] private TMP_Text _levelText;
+    [SerializeField] private Button _playButton;
     [Header("Birds")]
+    private int _birdCount;
+    [SerializeField] private GameObject _birdParent;
+    [SerializeField] private int _maxBirdCount;
     public List<Bird> Birds;
     private Bird _shotBird;
     [Header("Enemy")]
@@ -22,24 +32,37 @@ public class GameController : MonoBehaviour
     [Header("GameOver")]
     public GameObject gameOverPanel;
     public bool _isGameEnded = false;
+    
+    public UnityAction OnMaxBirds = delegate { };
+    public UnityAction OnRemoveBird = delegate { };
 
     void Start()
     {
         InitLevel();
+        _playButton.onClick.AddListener(PlayGame);
+        for (int i = 0; i < Enemies.Count; i++)
+        {
+            Enemies[i].OnEnemyDestroyed += CheckGameEnd;
+        }
+    }
+
+    private void Update()
+    {
+        _countText.text = _birdCount.ToString()+"/"+_maxBirdCount.ToString();
+    }
+
+    void PlayGame()
+    {
         for (int i = 0; i < Birds.Count; i++)
         {
             Birds[i].OnBirdDestroyed += ChangeBird;
             Birds[i].OnBirdShot += AssignTrail;
         }
-
-        for (int i = 0; i < Enemies.Count; i++)
-        {
-            Enemies[i].OnEnemyDestroyed += CheckGameEnd;
-        }
-
+        
         TapCollider.enabled = false;
         SlingShooter.InitiateBird(Birds[0]);
         _shotBird = Birds[0];
+        Birds[0].gameObject.SetActive(true);
     }
     void InitLevel()
     {
@@ -47,7 +70,25 @@ public class GameController : MonoBehaviour
         GameObject enemy = Instantiate(_levelPrefab);
         Enemies = new List<Enemy>(enemy.GetComponentsInChildren<Enemy>());
     }
-
+    public void SelectBird(Bird bird)
+    {
+        Birds.Add(bird);
+        bird.gameObject.transform.SetParent(_birdParent.transform);
+        _birdCount++;
+        
+        if (_birdCount == _maxBirdCount)
+        {
+            OnMaxBirds();
+        }
+    }
+    public void RemoveBird(int id)
+    {
+        Destroy(Birds[id].gameObject);
+        Birds.RemoveAt(id);
+        
+        _birdCount--;
+        OnRemoveBird();
+    }
     public void ChangeBird()
     {
         TapCollider.enabled = false;
@@ -63,6 +104,7 @@ public class GameController : MonoBehaviour
         {
             SlingShooter.InitiateBird(Birds[0]);
             _shotBird = Birds[0];
+            Birds[0].gameObject.SetActive(true);
         }
 
         if (Birds.Count == 0)
